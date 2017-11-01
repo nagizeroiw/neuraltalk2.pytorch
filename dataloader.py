@@ -13,12 +13,6 @@ import torch.utils.data as data
 
 import multiprocessing
 
-def get_npy_data(ix, fc_file, att_file, use_att):
-    if use_att == True:
-        return (np.load(fc_file), np.load(att_file)['feat'], ix)
-    else:
-        return (np.load(fc_file), np.zeros((1,1,1)), ix)
-
 class DataLoader(data.Dataset):
 
     def reset_iterator(self, split):
@@ -49,11 +43,11 @@ class DataLoader(data.Dataset):
         print('vocab size is ', self.vocab_size)
         
         # open the hdf5 file
-        print('DataLoader loading h5 file: ', opt.input_fc_dir, opt.input_att_dir, opt.input_label_h5)
+        print('DataLoader loading h5 file: ', opt.input_fc_h5, opt.input_att_h5, opt.input_label_h5)
         self.h5_label_file = h5py.File(self.opt.input_label_h5, 'r', driver='core')
 
-        self.input_fc_dir = self.opt.input_fc_dir
-        self.input_att_dir = self.opt.input_att_dir
+        self.h5_fc_file = h5py.File(self.opt.input_fc_h5, 'r')
+        self.h5_att_file = h5py.File(self.opt.input_att_h5, 'r')
 
         # load in the sequence data
         seq_size = self.h5_label_file['labels'].shape
@@ -176,11 +170,9 @@ class DataLoader(data.Dataset):
         """This function returns a tuple that is further passed to collate_fn
         """
         ix = index #self.split_ix[index]
-        return get_npy_data(ix, \
-                os.path.join(self.input_fc_dir, str(self.info['images'][ix]['id']) + '.npy'),
-                os.path.join(self.input_att_dir, str(self.info['images'][ix]['id']) + '.npz'),
-                self.use_att
-                )
+        return (self.h5_fc_file[str(self.info['images'][ix]['id'])][:],\
+                self.h5_att_file[str(self.info['images'][ix]['id'])][:] if self.use_att else np.zeros((1,1,1)),\
+                ix)
 
     def __len__(self):
         return len(self.info['images'])
@@ -208,7 +200,7 @@ class BlobFetcher():
                                             sampler=self.dataloader.split_ix[self.split][self.dataloader.iterators[self.split]:],
                                             shuffle=False,
                                             pin_memory=True,
-                                            num_workers=multiprocessing.cpu_count(),
+                                            num_workers=1,
                                             collate_fn=lambda x: x[0]))
 
     def _get_next_minibatch_inds(self):

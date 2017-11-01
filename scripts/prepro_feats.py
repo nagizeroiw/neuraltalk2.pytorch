@@ -63,12 +63,8 @@ def main(params):
 
   seed(123) # make reproducible
 
-  dir_fc = params['output_dir']+'_fc'
-  dir_att = params['output_dir']+'_att'
-  if not os.path.isdir(dir_fc):
-    os.mkdir(dir_fc)
-  if not os.path.isdir(dir_att):
-    os.mkdir(dir_att)
+  h5_fc = h5py.File(params['output_h5']+'_fc.h5', 'w')
+  h5_att = h5py.File(params['output_h5']+'_att.h5', 'w')
 
   for i,img in enumerate(imgs):
     # load the image
@@ -83,12 +79,15 @@ def main(params):
     I = Variable(preprocess(I), volatile=True)
     tmp_fc, tmp_att = my_resnet(I, params['att_size'])
     # write to pkl
-    np.save(os.path.join(dir_fc, str(img['cocoid'])), tmp_fc.data.cpu().float().numpy())
-    np.savez_compressed(os.path.join(dir_att, str(img['cocoid'])), feat=tmp_att.data.cpu().float().numpy())
+    h5_att.create_dataset(str(img['cocoid']), data=tmp_att.data.cpu().float().numpy(), compression="gzip")
+    h5_fc.create_dataset(str(img['cocoid']), data=tmp_fc.data.cpu().float().numpy(), compression="gzip")
 
     if i % 1000 == 0:
       print('processing %d/%d (%.2f%% done)' % (i, N, i*100.0/N))
-  print('wrote ', params['output_dir'])
+  print('wrote ', params['output_h5'])
+
+  h5_fc.close()
+  h5_att.close()
 
 if __name__ == "__main__":
 
@@ -96,7 +95,7 @@ if __name__ == "__main__":
 
   # input json
   parser.add_argument('--input_json', required=True, help='input json file to process into hdf5')
-  parser.add_argument('--output_dir', default='data', help='output h5 file')
+  parser.add_argument('--output_h5', default='data', help='output h5 file')
 
   # options
   parser.add_argument('--images_root', default='', help='root location in which images are stored, to be prepended to file_path in input json')

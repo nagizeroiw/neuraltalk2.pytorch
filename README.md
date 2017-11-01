@@ -30,7 +30,7 @@ Once we have these, we can now invoke the `prepro_*.py` script, which will read 
 
 ```bash
 $ python scripts/prepro_labels.py --input_json data/dataset_coco.json --output_json data/cocotalk.json --output_h5 data/cocotalk
-$ python scripts/prepro_feats.py --input_json data/dataset_coco.json --output_dir data/cocotalk --images_root $IMAGE_ROOT
+$ python scripts/prepro_feats.py --input_json data/dataset_coco.json --output_h5 data/cocotalk --images_root $IMAGE_ROOT
 ```
 
 `prepro_labels.py` will map all words that occur <= 5 times to a special `UNK` token, and create a vocabulary for all the remaining words. The image information and vocabulary are dumped into `data/cocotalk.json` and discretized caption data are dumped into `data/cocotalk_label.h5`.
@@ -44,7 +44,7 @@ $ python scripts/prepro_feats.py --input_json data/dataset_coco.json --output_di
 ### Start training
 
 ```bash
-$ python train.py --id st --caption_model show_tell --input_json data/cocotalk.json --input_fc_dir data/cocotalk_fc --input_att_dir data/cocotalk_att --input_label_h5 data/cocotalk_label.h5 --batch_size 10 --learning_rate 5e-4 --learning_rate_decay_start 0 --scheduled_sampling_start 0 --checkpoint_path log_st --save_checkpoint_every 6000 --val_images_use 5000 --max_epochs 25
+$ python train.py --id st --caption_model show_tell --input_json data/cocotalk.json --input_fc_h5 data/cocotalk_fc.h5 --input_att_h5 data/cocotalk_att.h5 --input_label_h5 data/cocotalk_label.h5 --batch_size 10 --learning_rate 5e-4 --learning_rate_decay_start 0 --scheduled_sampling_start 0 --checkpoint_path log_st --save_checkpoint_every 6000 --val_images_use 5000 --max_epochs 25
 ```
 
 The train script will dump checkpoints into the folder specified by `--checkpoint_path` (default = `save/`). We only save the best-performing checkpoint on validation and the latest checkpoint to save disk space.
