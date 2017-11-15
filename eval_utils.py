@@ -64,7 +64,7 @@ def eval_split(model, crit, loader, eval_kwargs={}):
     verbose = eval_kwargs.get('verbose', True)
     num_images = eval_kwargs.get('num_images', eval_kwargs.get('val_images_use', -1))
     split = eval_kwargs.get('split', 'val')
-    lang_eval = eval_kwargs.get('language_eval', 0)
+    lang_eval = eval_kwargs.get('language_eval', 1)
     dataset = eval_kwargs.get('dataset', 'coco')
     beam_size = eval_kwargs.get('beam_size', 1)
 
@@ -134,7 +134,7 @@ def eval_split(model, crit, loader, eval_kwargs={}):
         if num_images >= 0 and n >= num_images:
             break
 
-    lang_stats = None
+    lang_stats = {}
     if lang_eval == 1:
         lang_stats = language_eval(dataset, predictions, eval_kwargs['id'], split)
 
