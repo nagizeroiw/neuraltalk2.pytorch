@@ -74,7 +74,7 @@ opt = parser.parse_args()
 
 # Load infos
 with open(opt.infos_path) as f:
-    infos = cPickle.load(f)
+    infos = cPickle.load(f,'rb')
 
 # override and collect parameters
 if len(opt.input_fc_dir) == 0:
