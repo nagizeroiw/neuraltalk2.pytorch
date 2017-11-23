@@ -214,7 +214,7 @@ class ShowAttendTellCore(nn.Module):
             dot = self.alpha_net(dot)                           # (batch * att_size) * 1
             dot = dot.view(-1, att_size)                        # batch * att_size
         else:
-            att = self.ctx2att(att)(att)                        # (batch * att_size) * 1
+            att = self.ctx2att(att)                             # (batch * att_size) * 1
             att = att.view(-1, att_size)                        # batch * att_size
             att_h = self.h2att(state[0][-1])                    # batch * 1
             att_h = att_h.expand_as(att)                        # batch * att_size
