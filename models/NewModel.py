@@ -43,33 +43,34 @@ class CBN2D(nn.Module):
         self.miu.data.zero_()
         self.var.data.fill_(1)
 
-    class ResBlk(nn.Module):
 
-        def __init__(self, opt):
-            super(ResBlk, self).__init__()
-            self.conv1 = nn.Sequential(
-                nn.Conv2(opt.att_feat_size, opt.att_feat_size, 1), nn.ReLU())
-            self.conv2 = nn.Conv2(
-                nn.Conv2(opt.att_feat_size, opt.att_feat_size, 3, padding=1))
-            self.bn1 = CBN2D(opt.att_feat_size)
-            self.conv3 = nn.Conv2(
-                nn.Conv2(opt.att_feat_size, opt.att_feat_size, 3, padding=1))
-            self.bn2 = CBN2D(opt.att_feat_size)
-            self.alpha_beta1 = nn.Sequential(
-                nn.Linear(opt.input_encoding_size, opt.att_feat_size * 2), nn.ReLU())
-            self.alpha_beta2 = nn.Sequential(
-                nn.Linear(opt.att_feat_size, opt.input_encoding_size * 2), nn.ReLU())
+class ResBlk(nn.Module):
 
-        def forward(self, att_feat, embed_xt=None):
-            gatta1 = None
-            gatta2 = None
-            if embed_xt:
-                gatta1 = self.alpha_beta1(embed_xt)
-                gatta2 = self.alpha_beta2(embed_xt)
-            res = self.conv1(att_feat)
-            x = self.bn1(res, gatta1)
-            F.relu_(x)
-            x=self.conv3(x)
-            x=self.bn2(x)
-            x=F.relu(x+res)
-            return x
+    def __init__(self, opt):
+        super(ResBlk, self).__init__()
+        self.conv1 = nn.Sequential(
+            nn.Conv2(opt.att_feat_size, opt.att_feat_size, 1), nn.ReLU())
+        self.conv2 = nn.Conv2(
+            nn.Conv2(opt.att_feat_size, opt.att_feat_size, 3, padding=1))
+        self.bn1 = CBN2D(opt.att_feat_size)
+        self.conv3 = nn.Conv2(
+            nn.Conv2(opt.att_feat_size, opt.att_feat_size, 3, padding=1))
+        self.bn2 = CBN2D(opt.att_feat_size)
+        self.alpha_beta1 = nn.Sequential(
+            nn.Linear(opt.input_encoding_size, opt.att_feat_size * 2), nn.ReLU())
+        self.alpha_beta2 = nn.Sequential(
+            nn.Linear(opt.att_feat_size, opt.input_encoding_size * 2), nn.ReLU())
+
+    def forward(self, att_feat, embed_xt=None):
+        gatta1 = None
+        gatta2 = None
+        if embed_xt:
+            gatta1 = self.alpha_beta1(embed_xt)
+            gatta2 = self.alpha_beta2(embed_xt)
+        res = self.conv1(att_feat)
+        x = self.bn1(res, gatta1)
+        F.relu_(x)
+        x = self.conv3(x)
+        x = self.bn2(x)
+        x = F.relu(x + res)
+        return x
