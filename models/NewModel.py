@@ -74,3 +74,14 @@ class ResBlk(nn.Module):
         x = self.bn2(x)
         x = F.relu(x + res)
         return x
+
+
+class ResCore(nn.Module):
+    def __init__(self, opt):
+        super(ResCore, self).__init__()
+        self.rnn_size = opt.rnn_size
+        self.input_encoding_size = opt.input_encoding_size
+
+
+class ResCaption(CaptionModel):
+    pass
