@@ -10,7 +10,7 @@ from .AttModel import AttModel
 
 class CBN2D(nn.Module):
     def __init__(self, feat_size, momentum=0.1):
-        super(CBN, self).__init__()
+        super(CBN2D, self).__init__()
         self.feat_size = feat_size
         # self.gamma = Parameter(torch.Tensor(self.feat_size))
         # self.beta = Parameter(torch.Tensor(self.feat_size))
@@ -26,7 +26,7 @@ class CBN2D(nn.Module):
         beta = None
         if gatta:
             gamma = gatta[:self.feat_size]
-            beta = gata[self.feat_size:]
+            beta = gatta[self.feat_size:]
         x_size = x.size()
         x = x.view(-1, self.feat_size)
         tmp_mean = torch.mean(x, 0)
@@ -115,5 +115,5 @@ class ResCore(nn.Module):
 
 class ResModel(AttModel):
     def __init__(self, opt):
-        super(ResModel, self).__init__()
+        super(ResModel, self).__init__(opt)
         self.core = ResCore(opt)
