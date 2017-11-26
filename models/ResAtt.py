@@ -5,7 +5,7 @@ from torch.autograd import *
 import misc.utils as utils
 
 from .CaptionModel import CaptionModel
-from .AttModel import AttModel,
+from .AttModel import AttModel
 
 
 class CBN2D(nn.Module):
