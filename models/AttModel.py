@@ -93,7 +93,7 @@ class AttModel(CaptionModel):
                 break
 
             xt = self.embed(it)
-
+            # fc_reat: b*rnn_size att_feats: 
             output, state = self.core(xt, fc_feats, att_feats, p_att_feats, state)
             output = F.log_softmax(self.logit(output))
             outputs.append(output)

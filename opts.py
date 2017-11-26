@@ -104,6 +104,8 @@ def parse_opt():
     # modified parameters
     parser.add_argument('--block_bn_num', type=int, default=2)
     parser.add_argument('--resblock_num', type=int, default=4)
+
+    
     args = parser.parse_args()
 
     # Check if args are valid
