@@ -5,7 +5,7 @@ from torch.autograd import *
 import misc.utils as utils
 
 from .CaptionModel import CaptionModel
-from .AttModel import AttModel
+from .AttModel import AttModel,
 
 
 class CBN2D(nn.Module):
@@ -34,10 +34,11 @@ class CBN2D(nn.Module):
         self.out = (x - self.miu) / torch.sqrt(self.var +
                                                self.eps) * (1 + self.gamma or Variable(torch.zeros(self.feat_size))) + (self.beta or Variable(torch.zeros(self.feat_size)))
 
-        if self.training��
+        if self.training:
             self.miu = self.momentum * self.miu + \
                 (1 - self.momentum) * tmp_mean
-            self.var = self.momentum * self.momentum +
+
+            self.var = self.momentum * self.momentum + \
                 (1 - self.momentum) * tmp_var
 
     def reset_param(self):
@@ -50,17 +51,17 @@ class ResBlk(nn.Module):
     def __init__(self, opt):
         super(ResBlk, self).__init__()
         self.conv1 = nn.Sequential(
-            nn.Conv2d(opt.att_feat_size, opt.att_feat_size, 1), nn.ReLU())
+            nn.Conv2d(opt.rnn_size, opt.rnn_size, 1), nn.ReLU())
         self.conv2 = nn.Conv2(
-            nn.Conv2d(opt.att_feat_size, opt.att_feat_size, 3, padding=1))
-        self.bn1 = CBN2D(opt.att_feat_size)
+            nn.Conv2d(opt.rnn_size, opt.rnn_size, 3, padding=1))
+        self.bn1 = CBN2D(opt.rnn_size)
         self.conv3 = nn.Conv2(
-            nn.Conv2d(opt.att_feat_size, opt.att_feat_size, 3, padding=1))
-        self.bn2 = CBN2D(opt.att_feat_size)
+            nn.Conv2d(opt.rnn_size, opt.rnn_size, 3, padding=1))
+        self.bn2 = CBN2D(opt.rnn_size)
         self.alpha_beta1 = nn.Sequential(
-            nn.Linear(opt.input_encoding_size, opt.att_feat_size * 2), nn.ReLU())
+            nn.Linear(opt.rnn_size, opt.rnn_size * 2), nn.ReLU())
         self.alpha_beta2 = nn.Sequential(
-            nn.Linear(opt.att_feat_size, opt.input_encoding_size * 2), nn.ReLU())
+            nn.Linear(opt.rnn_size, opt.rnn_size * 2), nn.ReLU())
 
     def forward(self, att_feat, embed_xt=None):
         gatta1 = None
@@ -88,7 +89,7 @@ class ResSeq(nn.Module):
         for i in range(self.resblock_num):
             x = self.reslist[i](att_feat, embed_xt)
         x = self.pool(x)
-        return x
+        return torch.squeeze(x)
 
 
 class ResCore(nn.Module):
@@ -97,8 +98,19 @@ class ResCore(nn.Module):
         self.lstm = nn.LSTMCore(
             opt.input_encoding_size + opt.rnn_size * 2, opt.rnn_size)
         self.resblocks = ResSeq(opt)
+        self.prev_out = None
 
     def forward(self, xt, fc_feats, att_feats, p_att_feats, state):
+        # xt: batch * 512
+        # fc_feats batch*512
+        # att_feats batch*512
+        # p_att_feats batch*512
+
+        conv_x = att_feats.permmute(0, 2, 3, 1)
+        lstm_input = self.resblocks(conv_x, self.prev_out)
+        out, state = self.lstm(lstm_input, state)
+        self.prev_out = out
+        return out, state
 
 
 class ResModel(AttModel):

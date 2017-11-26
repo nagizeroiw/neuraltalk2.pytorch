@@ -64,13 +64,13 @@ class AttModel(CaptionModel):
         outputs = []
 
         # embed fc and att feats
-        fc_feats = self.fc_embed(fc_feats)
-        _att_feats = self.att_embed(att_feats.view(-1, self.att_feat_size))
-        att_feats = _att_feats.view(*(att_feats.size()[:-1] + (self.rnn_size,)))
+        fc_feats = self.fc_embed(fc_feats) # batch_size * rnn_size
+        _att_feats = self.att_embed(att_feats.view(-1, self.att_feat_size))  # bwh * rnn_size 
+        att_feats = _att_feats.view(*(att_feats.size()[:-1] + (self.rnn_size,))) # b*w*h*c
 
         # Project the attention feats first to reduce memory and computation comsumptions.
-        p_att_feats = self.ctx2att(att_feats.view(-1, self.rnn_size))
-        p_att_feats = p_att_feats.view(*(att_feats.size()[:-1] + (self.att_hid_size,)))
+        p_att_feats = self.ctx2att(att_feats.view(-1, self.rnn_size))  
+        p_att_feats = p_att_feats.view(*(att_feats.size()[:-1] + (self.att_hid_size,)))  #b*w*h*att_hid_size
 
         for i in range(seq.size(1) - 1):
             if self.training and i >= 1 and self.ss_prob > 0.0: # otherwiste no need to sample
