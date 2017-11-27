@@ -15,50 +15,55 @@ class CBN2D(nn.Module):
         self.feat_size = feat_size
         # self.gamma = Parameter(torch.Tensor(self.feat_size))
         # self.beta = Parameter(torch.Tensor(self.feat_size))
-        self.var = Variable(torch.Tensor(self.feat_size).cuda())
-        self.miu = Variable(torch.Tensor(self.feat_size).cuda())
-        #self.register_buffer('var',torch.ones(self.feat_size))
-        #self.register_buffer('miu',torch.zeros(self.feat_size))
+        self.var = Variable(torch.Tensor(self.feat_size))
+        self.miu = Variable(torch.Tensor(self.feat_size))
+        # self.register_buffer('var',torch.ones(self.feat_size))
+        # self.register_buffer('miu',torch.zeros(self.feat_size))
         self.eps = 1e-9
         self.momentum = momentum
-        #self.reset_param()
+        # self.reset_param()
 
     def forward(self, x, gatta=None):
         assert(x.dim() == 4)
-        
+
         if gatta:
             gamma = gatta[:self.feat_size]
             beta = gatta[self.feat_size:]
         else:
-            gamma=Variable(torch.zeros(self.feat_size))
-            beta=Variable(torch.zeros(self.feat_size))
+            gamma = Variable(torch.zeros(self.feat_size))
+            beta = Variable(torch.zeros(self.feat_size))
         if x.is_cuda and not gamma.is_cuda:
-            gamma=gamma.cuda()
-            beta=beta.cuda()
-            
-        x_size = x.size()
-        x = x.view(-1, self.feat_size)
-        tmp_mean = torch.mean(x, 0)
-        tmp_var = torch.var(x, 0)
-        #print(type(x.data))
-        out = (x - self.miu) / torch.sqrt(self.var +
-                                               self.eps) * (gamma + 1) + (beta)
+            gamma = gamma.cuda()
+            beta = beta.cuda()
 
-        
+        x_size = x.size()
+        x = x.view(x_size[0], x_size[1], -1)
+        x = x.permute(0, 2, 1)
+        # x = x.view(-1, self.feat_size)
+        tmp_x = x.contiguous().view(-1, self.feat_size)
+        tmp_mean = torch.mean(tmp_x, 0)
+        tmp_var = torch.var(tmp_x, 0)
+        # print(type(x.data))
+        out = (x - self.miu) / torch.sqrt(self.var +
+                                          self.eps) * (gamma + 1) + (beta)
+        out = out.permute(0, 2, 1).contiguous()
+        out.view(x_size)
+
         self.miu = self.momentum * self.miu + \
-                (1 - self.momentum) * tmp_mean
+            (1 - self.momentum) * tmp_mean
 
         self.var = self.momentum * self.momentum + \
-                (1 - self.momentum) * tmp_var
+            (1 - self.momentum) * tmp_var
         return out
 
-    def cuda():
-        print('Just cuda method CALLED!')
-        super(CBN2D,self).cuda()
-        self.var=self.var.cuda()
-        self.miu=self.miu.cuda()
+    def cuda(self):
+        # print('Just cuda method CALLED!')
+        self.var = self.var.cuda()
+        self.miu = self.miu.cuda()
+        super(CBN2D, self).cuda()
+        
 
-    #def reset_param(self):
+    # def reset_param(self):
     #    self.miu.data.zero_()
     #    self.var.data.fill_(1)
 
@@ -86,8 +91,8 @@ class ResBlk(nn.Module):
             gatta2 = self.alpha_beta2(embed_xt)
         res = self.conv1(att_feat)
         x = self.bn1(res, gatta1)
-        #print(x.size())
-        x=F.relu(x)
+        # print(x.size())
+        x = F.relu(x)
         x = self.conv3(x)
         x = self.bn2(x)
         x = F.relu(x + res)
@@ -97,7 +102,8 @@ class ResBlk(nn.Module):
 class ResSeq(nn.Module):
     def __init__(self, opt):
         super(ResSeq, self).__init__()
-        self.reslist = nn.ModuleList([ResBlk(opt) for i in range(opt.resblock_num)])
+        self.reslist = nn.ModuleList([ResBlk(opt)
+                                      for i in range(opt.resblock_num)])
         self.resblock_num = opt.resblock_num
         self.pool = nn.MaxPool2d(14)
 
@@ -123,7 +129,7 @@ class ResCore(nn.Module):
         # p_att_feats batch*512
 
         conv_x = att_feats.permute(0, 3, 1, 2)
-        #print(conv_x.size())
+        # print(conv_x.size())
         lstm_input = self.resblocks(conv_x, self.prev_out)
         out, state = self.lstm(lstm_input, state)
         self.prev_out = out
