@@ -95,7 +95,7 @@ class ResSeq(nn.Module):
 class ResCore(nn.Module):
     def __init__(self, opt):
         super(ResCore, self).__init__()
-        self.lstm = nn.LSTMCore(
+        self.lstm = nn.LSTMCell(
             opt.input_encoding_size + opt.rnn_size * 2, opt.rnn_size)
         self.resblocks = ResSeq(opt)
         self.prev_out = None
