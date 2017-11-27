@@ -15,8 +15,8 @@ class CBN2D(nn.Module):
         self.feat_size = feat_size
         # self.gamma = Parameter(torch.Tensor(self.feat_size))
         # self.beta = Parameter(torch.Tensor(self.feat_size))
-        self.var = Variable(torch.Tensor(self.feat_size))
-        self.miu = Variable(torch.Tensor(self.feat_size))
+        self.var = Variable(torch.Tensor(self.feat_size).cuda())
+        self.miu = Variable(torch.Tensor(self.feat_size).cuda())
         # self.register_buffer('var',torch.ones(self.feat_size))
         # self.register_buffer('miu',torch.zeros(self.feat_size))
         self.eps = 1e-9
@@ -56,11 +56,11 @@ class CBN2D(nn.Module):
             (1 - self.momentum) * tmp_var
         return out
 
-    def cuda(self):
-        # print('Just cuda method CALLED!')
-        self.var = self.var.cuda()
-        self.miu = self.miu.cuda()
-        super(CBN2D, self).cuda()
+    # def cuda(self):
+    #     # print('Just cuda method CALLED!')
+    #     self.var = self.var.cuda()
+    #     self.miu = self.miu.cuda()
+    #     super(CBN2D, self).cuda()
         
 
     # def reset_param(self):
