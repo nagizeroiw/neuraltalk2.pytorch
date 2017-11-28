@@ -61,7 +61,6 @@ class CBN2D(nn.Module):
     #     self.var = self.var.cuda()
     #     self.miu = self.miu.cuda()
     #     super(CBN2D, self).cuda()
-        
 
     # def reset_param(self):
     #    self.miu.data.zero_()
@@ -94,7 +93,7 @@ class ResBlk(nn.Module):
         # print(x.size())
         x = F.relu(x)
         x = self.conv3(x)
-        x = self.bn2(x)
+        x = self.bn2(x, gatta2)
         x = F.relu(x + res)
         return x
 
