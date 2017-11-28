@@ -1,5 +1,6 @@
 *.pyc
 *.bak
+shell_train.sh
 .vscode/
 data/
 log_st/

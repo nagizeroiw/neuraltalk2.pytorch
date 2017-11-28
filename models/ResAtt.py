@@ -9,6 +9,7 @@ from .CaptionModel import CaptionModel
 from .AttModel import AttModel
 
 
+
 class CBN2D(nn.Module):
     def __init__(self, feat_size, momentum=0.1):
         super(CBN2D, self).__init__()
@@ -26,12 +27,12 @@ class CBN2D(nn.Module):
     def forward(self, x, gatta=None):
         assert(x.dim() == 4)
 
-        if gatta:
-            gamma = gatta[:self.feat_size]
-            beta = gatta[self.feat_size:]
+        if not gatta is None:
+            gamma = gatta[:, :self.feat_size]
+            beta = gatta[:, self.feat_size:]
         else:
-            gamma = Variable(torch.zeros(self.feat_size))
-            beta = Variable(torch.zeros(self.feat_size))
+            gamma = Variable(torch.zeros(x.size()))
+            beta = Variable(torch.zeros(x.size()))
         if x.is_cuda and not gamma.is_cuda:
             gamma = gamma.cuda()
             beta = beta.cuda()
@@ -43,11 +44,15 @@ class CBN2D(nn.Module):
         tmp_x = x.contiguous().view(-1, self.feat_size)
         tmp_mean = torch.mean(tmp_x, 0)
         tmp_var = torch.var(tmp_x, 0)
-        # print(type(x.data))
+        print("x size: {}".format(x.size()))
+        print("var size: {}".format(self.var.size()))
+        print("miu size: {}".format(self.miu.size()))
+        print("gamma size: {}".format(gamma.size()))
+
         out = (x - self.miu) / torch.sqrt(self.var +
                                           self.eps) * (gamma + 1) + (beta)
         out = out.permute(0, 2, 1).contiguous()
-        out.view(x_size)
+        out = out.view(x_size)
 
         self.miu = self.momentum * self.miu + \
             (1 - self.momentum) * tmp_mean
@@ -78,14 +83,15 @@ class ResBlk(nn.Module):
         self.conv3 = nn.Conv2d(opt.rnn_size, opt.rnn_size, 3, padding=1)
         self.bn2 = CBN2D(opt.rnn_size)
         self.alpha_beta1 = nn.Sequential(
-            nn.Linear(opt.rnn_size, opt.rnn_size * 2), nn.ReLU())
+            nn.Linear(opt.rnn_size, opt.rnn_size), nn.ReLU(), nn.Linear(opt.rnn_size, opt.rnn_size * 2))
         self.alpha_beta2 = nn.Sequential(
-            nn.Linear(opt.rnn_size, opt.rnn_size * 2), nn.ReLU())
+            nn.Linear(opt.rnn_size, opt.rnn_size), nn.ReLU(), nn.Linear(opt.rnn_size, opt.rnn_size * 2))
 
     def forward(self, att_feat, embed_xt=None):
         gatta1 = None
         gatta2 = None
-        if embed_xt:
+        if not embed_xt is None:
+            # print(embed_xt.size())
             gatta1 = self.alpha_beta1(embed_xt)
             gatta2 = self.alpha_beta2(embed_xt)
         res = self.conv1(att_feat)
@@ -117,7 +123,7 @@ class ResCore(nn.Module):
     def __init__(self, opt):
         super(ResCore, self).__init__()
         self.lstm = nn.LSTMCell(
-            opt.input_encoding_size + opt.rnn_size * 2, opt.rnn_size)
+            opt.input_encoding_size + opt.rnn_size, opt.rnn_size)
         self.resblocks = ResSeq(opt)
         self.prev_out = None
 
@@ -130,8 +136,9 @@ class ResCore(nn.Module):
         conv_x = att_feats.permute(0, 3, 1, 2)
         # print(conv_x.size())
         lstm_input = self.resblocks(conv_x, self.prev_out)
-        out, state = self.lstm(lstm_input, state)
-        self.prev_out = out
+        out, state = self.lstm(torch.cat((lstm_input, fc_feats), 1), state)
+        # print(out.size())
+        self.prev_out = out.squeeze()
         return out, state
 
 
