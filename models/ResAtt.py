@@ -36,7 +36,6 @@ class CBN2D(nn.Module):
         if x.is_cuda and not gamma.is_cuda:
             gamma = gamma.cuda()
             beta = beta.cuda()
-
         x_size = x.size()
         x = x.view(x_size[0], x_size[1], -1)
         x = x.permute(0, 2, 1)
@@ -44,6 +43,8 @@ class CBN2D(nn.Module):
         tmp_x = x.contiguous().view(-1, self.feat_size)
         tmp_mean = torch.mean(tmp_x, 0)
         tmp_var = torch.var(tmp_x, 0)
+        beta=beta.squeeze(2).squeeze(3).expand(x.size())
+        beta=beta.squeeze(2).squeeze(3).expand(x.size())
 
         out = (x - self.miu) / torch.sqrt(self.var +
                                           self.eps) * (gamma + 1) + (beta)
