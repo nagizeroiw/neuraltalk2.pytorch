@@ -13,7 +13,7 @@ from .AttModel import AttModel
 class CBN2D(nn.Module):
     def __init__(self, feat_size, momentum=0.1):
         super(CBN2D, self).__init__()
-        self.feat_size = feat_size
+        self.feat_size = 1
         # self.gamma = Parameter(torch.Tensor(self.feat_size))
         # self.beta = Parameter(torch.Tensor(self.feat_size))
         self.var = Variable(torch.Tensor(self.feat_size).cuda())
@@ -79,9 +79,9 @@ class ResBlk(nn.Module):
         self.conv3 = nn.Conv2d(opt.rnn_size, opt.rnn_size, 3, padding=1)
         self.bn2 = CBN2D(opt.rnn_size)
         self.alpha_beta1 = nn.Sequential(
-            nn.Linear(opt.rnn_size, opt.rnn_size), nn.ReLU(), nn.Linear(opt.rnn_size, opt.rnn_size * 2))
+            nn.Linear(opt.rnn_size, opt.rnn_size), nn.ReLU(), nn.Linear(opt.rnn_size, 2))
         self.alpha_beta2 = nn.Sequential(
-            nn.Linear(opt.rnn_size, opt.rnn_size), nn.ReLU(), nn.Linear(opt.rnn_size, opt.rnn_size * 2))
+            nn.Linear(opt.rnn_size, opt.rnn_size), nn.ReLU(), nn.Linear(opt.rnn_size, 2))
 
     def forward(self, att_feat, embed_xt=None):
         gatta1 = None
