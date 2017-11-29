@@ -44,10 +44,6 @@ class CBN2D(nn.Module):
         tmp_x = x.contiguous().view(-1, self.feat_size)
         tmp_mean = torch.mean(tmp_x, 0)
         tmp_var = torch.var(tmp_x, 0)
-        print("x size: {}".format(x.size()))
-        print("var size: {}".format(self.var.size()))
-        print("miu size: {}".format(self.miu.size()))
-        print("gamma size: {}".format(gamma.size()))
 
         out = (x - self.miu) / torch.sqrt(self.var +
                                           self.eps) * (gamma + 1) + (beta)
