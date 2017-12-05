@@ -27,8 +27,9 @@ class CBN2D(nn.Module):
         assert(x.dim() == 4)
 
         if not gatta is None:
+            # print(gatta.size())
             gamma = gatta.narrow(1, 0, self.feat_size)
-            beta = gatta¡£narrow(1, self.feat_size, self.feat_size)
+            beta = gatta.narrow(1, self.feat_size, self.feat_size)
         else:
             gamma = Variable(torch.zeros(x.size(0), self.feat_size))
             beta = Variable(torch.zeros(x.size(0), self.feat_size))
@@ -83,9 +84,9 @@ class ResBlk(nn.Module):
         # self.alpha_beta2 = nn.Sequential(
         #     nn.Linear(opt.rnn_size, opt.rnn_size), nn.ReLU(), nn.Linear(opt.rnn_size, 2))
         self.alpha_beta1 = nn.Sequential(
-            nn.Linear(opt.rnn_size, opt.rnn_size), nn.ReLU(), nn.Linear(opt.rnn_size, 2))
+            nn.Linear(opt.rnn_size, opt.rnn_size), nn.ReLU(), nn.Linear(opt.rnn_size, 2 * opt.rnn_size))
         self.alpha_beta2 = nn.Sequential(
-            nn.Linear(opt.rnn_size, opt.rnn_size), nn.ReLU(), nn.Linear(opt.rnn_size, 2))
+            nn.Linear(opt.rnn_size, opt.rnn_size), nn.ReLU(), nn.Linear(opt.rnn_size, 2 * opt.rnn_size))
 
     def forward(self, att_feat, embed_xt=None):
         gatta1 = None
@@ -141,8 +142,8 @@ class ResCore(nn.Module):
         out, hidden = self.lstm(lstm_input, state)
         # print(state.size())
         self.prev_out = out.squeeze()
-        result = subprocess.run(['nvidia-smi'], stdout=subprocess.PIPE)
-        print(result.stdout.decode('utf-8'))
+        # result = subprocess.run(['nvidia-smi'], stdout=subprocess.PIPE)
+        # print(result.stdout.decode('utf-8'))
         # state = (out, hidden)
         # if state[0].dim() != 3:
         #     state[0] = state[0].unsqueeze(0)
