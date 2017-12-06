@@ -125,7 +125,7 @@ class ResCore(nn.Module):
         super(ResCore, self).__init__()
         self.lstm = ResLSTM(opt, opt.input_encoding_size + opt.rnn_size)
         self.resblocks = ResSeq(opt)
-        self.prev_out = None
+        # self.prev_out = None
 
     def forward(self, xt, fc_feats, att_feats, p_att_feats, state):
         # xt: batch * 512
@@ -136,12 +136,12 @@ class ResCore(nn.Module):
         conv_x = att_feats.permute(0, 3, 1, 2)
         # print(conv_x.size())
         # print(state[0].size())
-        conved_input = self.resblocks(conv_x, self.prev_out)
+        conved_input = self.resblocks(conv_x, state[0][0])
         lstm_input = torch.cat((conved_input, xt), 1)
         # print(state[0].size())
-        out, hidden = self.lstm(lstm_input, state)
+        out, state = self.lstm(lstm_input, state)
         # print(state.size())
-        self.prev_out = out.squeeze()
+        # self.prev_out = out.squeeze()
         # result = subprocess.run(['nvidia-smi'], stdout=subprocess.PIPE)
         # print(result.stdout.decode('utf-8'))
         # state = (out, hidden)
