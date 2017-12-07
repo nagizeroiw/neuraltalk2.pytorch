@@ -67,7 +67,8 @@ def train(opt):
 
     model = models.setup(opt)
     model.cuda()
-
+    if opt.multi_gpu:
+        model=nn.DataParallel(model)
     update_lr_flag = True
     # Assure in training mode
     model.train()

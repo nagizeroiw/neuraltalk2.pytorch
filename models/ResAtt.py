@@ -113,10 +113,10 @@ class ResSeq(nn.Module):
         self.resblock_num = opt.resblock_num
         self.pool = nn.MaxPool2d(14)
 
-    def forward(self, att_feat, embed_xt):
+    def forward(self, att_feat, prev_hidden):
         for i in range(self.resblock_num):
-            x = self.reslist[i](att_feat, embed_xt)
-        x = self.pool(x)
+            att_feat = self.reslist[i](att_feat, prev_hidden)
+        x = self.pool(att_feat)
         return torch.squeeze(x)
 
 
@@ -132,7 +132,7 @@ class ResCore(nn.Module):
         # fc_feats batch*512
         # att_feats batch*512
         # p_att_feats batch*512
-
+        # print('step')
         conv_x = att_feats.permute(0, 3, 1, 2)
         # print(conv_x.size())
         # print(state[0].size())

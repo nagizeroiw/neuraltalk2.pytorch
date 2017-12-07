@@ -1,5 +1,13 @@
 import argparse
 
+def str2bool(v):
+    if v.lower() in ['yes', 'true', '1', 'y', 't']:
+        return True
+    elif v.lower() in ['no', 'false', 'f', 'n', '0']:
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean needed')
+
 
 def parse_opt():
     parser = argparse.ArgumentParser()
@@ -103,8 +111,8 @@ def parse_opt():
 
     # modified parameters
     parser.add_argument('--block_bn_num', type=int, default=2)
-    parser.add_argument('--resblock_num', type=int, default=4)
-
+    parser.add_argument('--resblock_num', type=int, default=2)
+    parser.add_argument('--multi_gpu', type=str2bool, default=False)
 
     args = parser.parse_args()
 

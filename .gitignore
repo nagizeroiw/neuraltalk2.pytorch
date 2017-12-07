@@ -2,6 +2,9 @@
 *.bak
 shell_train.sh
 .vscode/
+*.jpg
+*.png
+*.gv
 data/
 log_st/
 save/
